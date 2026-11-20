@@ -1,0 +1,27 @@
+{
+  "name": "photo-sorter",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Lokálne triedenie fotiek v prehliadači (PWA) – CLIP, duplikáty, eventy podľa dátumu.",
+  "type": "module",
+  "scripts": {
+    "copy-ort": "node scripts/copy-ort.mjs",
+    "icons": "pwa-assets-generator",
+    "predev": "npm run copy-ort",
+    "dev": "vite",
+    "prebuild": "npm run copy-ort",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.2",
+    "exifr": "^7.1.3",
+    "idb": "^8.0.4",
+    "libheif-js": "^1.23.5"
+  },
+  "devDependencies": {
+    "@vite-pwa/assets-generator": "^2.0.0",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0"
+  }
+}
