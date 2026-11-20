@@ -51,10 +51,14 @@ V *Settings → Pages* nastav **Source: GitHub Actions**. GitHub Pages pre súkr
 
 ### Synology (Web Station)
 
-1. `npm run build`
-2. Obsah `dist/` skopíruj do zdieľaného priečinka `web` (napr. `web/photo-sorter/`).
-3. Zapni HTTPS (Ovládací panel → Zabezpečenie → Certifikát, napr. Let's Encrypt) a otvor `https://tvoj-nas/photo-sorter/`.
-4. Ak by server neposielal správny MIME typ pre `.wasm`, pridaj `application/wasm`.
+Podrobný návod je v **[SYNOLOGY.md](SYNOLOGY.md)**. V skratke:
+
+```bash
+npm run synology:zip                                    # ZIP na nahratie cez File Station
+npm run synology:copy -- "\\192.168.1.10\web\photo-sorter"  # alebo priamo na sieťový priečinok
+```
+
+Potom otvor `https://<tvoj-nas>/photo-sorter/` (potrebný platný HTTPS certifikát, napr. Let's Encrypt cez Synology DDNS).
 
 ### Inštalácia ako appka
 

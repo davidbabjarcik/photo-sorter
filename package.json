@@ -11,7 +11,9 @@
     "dev": "vite",
     "prebuild": "npm run copy-ort",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "synology:zip": "npm run build && node scripts/synology.mjs zip",
+    "synology:copy": "npm run build && node scripts/synology.mjs copy"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.3.2",
