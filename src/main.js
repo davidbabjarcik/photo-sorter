@@ -9,6 +9,7 @@ import { dot } from './classify.js';
 import { toEnglishQuery } from './translate.js';
 import { loadSettings, saveSettings, resetSettings, activeCategories, FALLBACK_CATEGORY, DUPES_FOLDER } from './settings.js';
 import { kvGet, kvSet, clearPhotos, countPhotos } from './db.js';
+import { cameraOf, groupByCamera } from './camera.js';
 
 registerSW({ immediate: true });
 
@@ -46,7 +47,7 @@ const S = {
   phase: 'idle', // idle | scanned | sorting | paused | done | writing
   records: [],
   cards: new Map(),
-  live: { sha: new Set(), dupes: 0, saved: 0 },
+  live: { sha: new Set(), dupes: 0, saved: 0, cams: new Set() },
   dup: null,
   plan: null,
 };
@@ -134,6 +135,7 @@ function renderStats() {
   const dupes = S.dup ? S.dup.dupeCount : S.live.dupes;
   const saved = S.dup ? S.dup.savedBytes : S.live.saved;
   $('#st-dupes').textContent = n(dupes);
+  $('#st-cams').textContent = n(S.live.cams.size);
   $('#st-saved').textContent = dupes ? `(+${fmtBytes(saved)})` : '';
   if (S.phase === 'sorting' || S.phase === 'paused') {
     const k = S.cards.size;
@@ -223,7 +225,7 @@ async function setSource(handle) {
   S.engine = null;
   S.dup = null;
   S.plan = null;
-  S.live = { sha: new Set(), dupes: 0, saved: 0 };
+  S.live = { sha: new Set(), dupes: 0, saved: 0, cams: new Set() };
   ball.clear();
   resetCards();
   $('#title').textContent = 'Moje fotky sú totálny chaos.';
@@ -262,7 +264,7 @@ async function startSort() {
   S.phase = 'sorting';
   S.records = [];
   S.dup = null;
-  S.live = { sha: new Set(), dupes: 0, saved: 0 };
+  S.live = { sha: new Set(), dupes: 0, saved: 0, cams: new Set() };
   resetCards();
   setButtons();
   renderStats();
@@ -276,6 +278,8 @@ async function startSort() {
       if (rec.sha256) {
         if (S.live.sha.has(rec.sha256)) { S.live.dupes++; S.live.saved += rec.size; } else S.live.sha.add(rec.sha256);
       }
+      const cam = cameraOf(rec);
+      if (cam.known) S.live.cams.add(cam.name);
       const card = cardFor(rec.cat);
       card.recs.push(rec);
       card.dirty = true;
@@ -417,7 +421,8 @@ async function openPhoto(rec) {
         <dt>Kategória</dt><dd>${esc(rec.cat?.icon)} ${esc(rec.cat?.name)} <span class="muted">(${esc(rec.reason)}${rec.p ? ', ' + Math.round(rec.p * 100) + ' %' : ''})</span></dd>
         <dt>Dátum</dt><dd>${fmtDate(rec.date)} <span class="muted">(${esc(rec.dateSource)})</span></dd>
         <dt>Rozmery</dt><dd>${rec.width ? `${rec.width} × ${rec.height}` : '–'} · ${fmtBytes(rec.size)}</dd>
-        ${rec.make || rec.model ? `<dt>Fotoaparát</dt><dd>${esc([rec.make, rec.model].filter(Boolean).join(' '))}</dd>` : ''}
+        <dt>Fotené</dt><dd>${esc(cameraOf(rec).icon)} ${esc(cameraOf(rec).name)}</dd>
+        ${rec.lens ? `<dt>Objektív</dt><dd>${esc(rec.lens)}</dd>` : ''}
         ${rec.dupeOf ? `<dt>Duplikát</dt><dd>lepšia verzia: ${esc(rec.dupeOf.path)}</dd>` : ''}
         ${rec.error ? `<dt>Chyba</dt><dd class="err">${esc(rec.error)}</dd>` : ''}
       </dl>
@@ -445,6 +450,48 @@ function openDupes() {
 }
 $('#st-dupes-btn').onclick = openDupes;
 
+function openCameras() {
+  const dlg = $('#dlg-cams');
+  if (!S.records.length) {
+    openDialog(dlg, `${head('Čím bolo fotené')}<div class="dlg-body"><p class="muted">Najprv vyber priečinok a stlač Roztriediť.</p></div>`);
+    return;
+  }
+  const groups = groupByCamera(S.records);
+  const total = S.records.length;
+  const known = groups.filter((g) => g.known).reduce((s, g) => s + g.recs.length, 0);
+  const devCount = groups.filter((g) => g.known).length;
+  const devWord = devCount === 1 ? 'zariadenie' : devCount >= 2 && devCount <= 4 ? 'zariadenia' : 'zariadení';
+  openDialog(dlg, `${head(`Čím bolo fotené <span class="muted small">· ${n(devCount)} ${devWord} ·${Math.round((known / total) * 100)} % fotiek má údaje v EXIF</span>`)}
+    <div class="dlg-body">
+      <div class="cams">${groups.map((g, i) => {
+        const pct = (g.recs.length / total) * 100;
+        const lenses = [...g.lenses.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+        const sample = [...g.recs].sort((a, b) => b.date - a.date).filter((r) => r.thumb).slice(0, 6);
+        return `<button class="cam-row${g.known ? '' : ' unknown'}" data-i="${i}">
+          <div class="cam-icon">${esc(g.icon)}</div>
+          <div class="cam-main">
+            <div class="cam-name">${esc(g.name)}</div>
+            <div class="cam-meta muted small">${n(g.recs.length)} ${countWord(g.recs.length)} · ${fmtBytes(g.bytes)}${lenses.length ? ' · ' + lenses.map(([l, c]) => `${esc(l)} (${n(c)})`).join(', ') : ''}</div>
+            <div class="cam-bar"><div style="width:${Math.max(1, pct).toFixed(1)}%"></div></div>
+          </div>
+          <div class="cam-thumbs">${sample.map((r) => `<img loading="lazy" src="${trackUrl(dlg, r.thumb)}" alt="">`).join('')}</div>
+        </button>`;
+      }).join('')}</div>
+      <p class="muted small" style="margin-top:12px">Zariadenie sa číta z EXIF (výrobca, model, objektív). Fotky z WhatsAppu a sociálnych sietí ich väčšinou nemajú, preto sa zaradia podľa názvu súboru. Podľa zariadenia sa dá aj triediť: Náhľad a zápis → Štruktúra → Fotoaparát/…</p>
+    </div>`);
+  dlg.querySelectorAll('.cam-row').forEach((b) => (b.onclick = () => {
+    const g = groups[+b.dataset.i];
+    const recs = [...g.recs].sort((a, c) => a.date - c.date);
+    const shown = recs.slice(0, 600);
+    const fd = $('#dlg-folder');
+    openDialog(fd, `${head(`${esc(g.icon)} ${esc(g.name)} <span class="muted small">· ${n(recs.length)} ${countWord(recs.length)}</span>`)}
+      <div class="dlg-body"><div class="grid">${shown.map((r) => thumbHtml(fd, r)).join('')}</div>
+      ${recs.length > shown.length ? `<p class="muted small">Zobrazených prvých ${n(shown.length)}.</p>` : ''}</div>`);
+    bindThumbs(fd);
+  }));
+}
+$('#st-cams-btn').onclick = openCameras;
+
 // ---------- náhľad (dry run) a zápis ----------
 function seg(name, value, options) {
   return `<div class="seg">${options.map(([v, label]) => `<label><input type="radio" name="${name}" value="${v}" ${v === value ? 'checked' : ''}>${label}</label>`).join('')}</div>`;
@@ -455,7 +502,7 @@ function openPlan() {
   const s = S.settings;
   openDialog(dlg, `${head('Náhľad bez zápisu')}
     <div class="dlg-body">
-      <div class="row"><span class="lbl">Štruktúra</span>${seg('layout', s.layout, [['cat', 'Kategória/…'], ['date', 'Dátum/…'], ['cat-date', 'Kategória/Dátum/…']])}</div>
+      <div class="row"><span class="lbl">Štruktúra</span>${seg('layout', s.layout, [['cat', 'Kategória/…'], ['date', 'Dátum/…'], ['cat-date', 'Kategória/Dátum/…'], ['cam', 'Fotoaparát/…']])}</div>
       <div class="row"><span class="lbl">Duplikáty</span>${seg('dupes', s.dupes, [['folder', `do „${DUPES_FOLDER}“`], ['skip', 'nekopírovať'], ['keep', 'triediť normálne']])}</div>
       <div class="row"><span class="lbl">Režim</span>${seg('mode', 'copy', [['copy', 'Kopírovať (originály ostanú)'], ['move', 'Presunúť']])}</div>
       <div class="row"><span class="lbl">Medzera medzi eventmi</span><input type="number" id="gap" min="1" max="168" step="1" value="${s.eventGapHours}" style="width:80px"> hodín</div>

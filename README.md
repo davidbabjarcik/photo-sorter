@@ -33,6 +33,7 @@
 | 🎛️ **Vlastné kategórie** | Kategórie aj ich textové prompty si upravíš v Nastaveniach. Pripravená je aj sada pre eventy: stage a svetlá, publikum, DJ pult, technika, backstage, plagáty. |
 | 📱 **Screenshoty** | AI + heuristiky: PNG, chýbajúci EXIF fotoaparátu, rozlíšenie displeja, „Screenshot“ v názve. |
 | 👯 **Duplikáty** | Presné kópie (SHA-256) aj takmer rovnaké fotky (perceptual hash + CLIP). Ponechá najkvalitnejšiu verziu a ukáže, koľko GB ušetríš. |
+| 📷 **Čím bolo fotené** | Z EXIF rozpozná telefón alebo fotoaparát (aj Samsung kódy ako `SM-S918B` → Galaxy S23) a objektív. Fotky bez údajov odhadne podľa názvu (WhatsApp, screenshot…). Dá sa triediť aj do priečinkov `Fotoaparát/…`. |
 | 📅 **Podľa dátumu** | EXIF → dátum v názve súboru → dátum zmeny. Fotky zoskupí do eventov podľa časových medzier (`RRRR-MM-DD`). |
 | 🍏 **HEIC z iPhonu** | Dekóduje sa cez libheif (WebAssembly), Chrome to sám nevie. |
 | 🔍 **Vyhľadávanie** | Stlač <kbd>/</kbd> a napíš „torta“, „pes“ alebo „svetlá na stage“. Nájde najpodobnejšie fotky. |
@@ -44,7 +45,7 @@
 
 1. **Vybrať priečinok**: appka rekurzívne nájde `jpg`, `png`, `webp` a `heic`.
 2. **Roztriediť**: fotky odlietajú z gule do kariet priečinkov. Prvýkrát sa stiahne AI model (raz, potom je v cache).
-3. **Náhľad a zápis**: vyberieš štruktúru `Kategória/…`, `Dátum/…` alebo `Kategória/Dátum/…`, skontroluješ ju a zapíšeš do nového priečinka.
+3. **Náhľad a zápis**: vyberieš štruktúru `Kategória/…`, `Dátum/…`, `Kategória/Dátum/…` alebo `Fotoaparát/…`, skontroluješ ju a zapíšeš do nového priečinka.
 
 ```
 Roztriedené/

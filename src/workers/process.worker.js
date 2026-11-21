@@ -77,7 +77,7 @@ async function analyze({ file, ext, thumbSize }) {
   try {
     exif = await exifr.parse(buf, {
       tiff: true, exif: true, gps: false, xmp: false, icc: false, iptc: false, jfif: false,
-      pick: ['DateTimeOriginal', 'CreateDate', 'Make', 'Model', 'Software', 'Orientation'],
+      pick: ['DateTimeOriginal', 'CreateDate', 'Make', 'Model', 'Software', 'Orientation', 'LensModel', 'LensMake'],
       translateValues: false,
       reviveValues: true,
     });
@@ -131,6 +131,7 @@ async function analyze({ file, ext, thumbSize }) {
     make: exif?.Make ? String(exif.Make).trim() : null,
     model: exif?.Model ? String(exif.Model).trim() : null,
     software: exif?.Software ? String(exif.Software).trim() : null,
+    lens: exif?.LensModel ? String(exif.LensModel).trim() : null,
   };
 }
 

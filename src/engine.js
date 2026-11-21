@@ -5,7 +5,7 @@ import { MODEL_ID, activeCategories } from './settings.js';
 import { classify, resolveDate } from './classify.js';
 
 const STORED = ['key', 'path', 'name', 'ext', 'size', 'mtime', 'sha256', 'dhash', 'flat', 'width', 'height', 'thumb',
-  'exifDate', 'make', 'model', 'software', 'emb', 'error'];
+  'exifDate', 'make', 'model', 'software', 'lens', 'emb', 'error'];
 const toStored = (r) => Object.fromEntries(STORED.map((k) => [k, r[k] ?? null]));
 
 class Pool {

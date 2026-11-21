@@ -1,5 +1,6 @@
 // Plán výstupu (dry run) a zápis do nového priečinka. Predvolene kopíruje, originály nemaže.
 import { DUPES_FOLDER } from './settings.js';
+import { cameraOf } from './camera.js';
 
 const pad = (n) => String(n).padStart(2, '0');
 export const ymd = (t) => { const d = new Date(t); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
@@ -71,7 +72,10 @@ export function buildPlan(recs, dupeSet, settings) {
 
   for (const r of included) {
     const c = safe(r.cat.name);
-    const dir = layout === 'cat' ? [c] : layout === 'date' ? [eventOf.get(r)] : [c, eventOf.get(r)];
+    const dir = layout === 'cat' ? [c]
+      : layout === 'date' ? [eventOf.get(r)]
+        : layout === 'cam' ? [safe(cameraOf(r).name)]
+          : [c, eventOf.get(r)];
     push(r, dir);
   }
   for (const r of dupList) push(r, [DUPES_FOLDER]);

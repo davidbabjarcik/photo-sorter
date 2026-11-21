@@ -48,7 +48,7 @@ export const DEFAULT_SETTINGS = {
   screenshotHeuristics: true,
   nearDupHamming: 5, // dHash vzdialenosť pre „takmer rovnaké“
   nearDupClip: 0.965, // podobnosť CLIP embeddingov (fotky blízko v čase)
-  layout: 'cat-date', // 'cat' | 'date' | 'cat-date'
+  layout: 'cat-date', // 'cat' | 'date' | 'cat-date' | 'cam'
   dupes: 'folder', // 'folder' | 'skip' | 'keep'
   mode: 'copy', // 'copy' | 'move'
   forceWasm: false,

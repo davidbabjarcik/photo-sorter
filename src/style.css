@@ -190,3 +190,16 @@ textarea { width: 100%; resize: vertical; min-height: 64px; font-size: 13px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+
+.cams { display: flex; flex-direction: column; gap: 8px; }
+.cam-row { display: grid; grid-template-columns: 44px 1fr 260px; gap: 14px; align-items: center; text-align: left; background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 12px 14px; width: 100%; }
+.cam-row:hover { border-color: var(--yellow); }
+.cam-row.unknown { opacity: 0.75; }
+.cam-icon { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--surface-2); font-size: 22px; }
+.cam-name { font-weight: 650; }
+.cam-meta { margin: 2px 0 6px; word-break: break-word; }
+.cam-bar { height: 5px; border-radius: 5px; background: var(--surface-2); overflow: hidden; }
+.cam-bar div { height: 100%; background: var(--yellow); border-radius: 5px; }
+.cam-thumbs { display: flex; gap: 4px; justify-content: flex-end; }
+.cam-thumbs img { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; }
+@media (max-width: 700px) { .cam-row { grid-template-columns: 44px 1fr; } .cam-thumbs { grid-column: 1 / -1; } }
