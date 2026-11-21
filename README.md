@@ -1,74 +1,110 @@
-# Photo Sorter
+<p align="center">
+  <img src="docs/banner.png" alt="Photo Sorter" width="100%">
+</p>
 
-Webová appka (PWA), ktorá roztriedi fotky z priečinka na počítači. **Všetko beží lokálne v prehliadači** – fotky sa nikam neuploadujú. Funguje v Chrome a Edge na Windows aj macOS.
+<p align="center">
+  <a href="https://davidbabjarcik.github.io/photo-sorter/"><b>▶ Otvoriť appku</b></a>
+  &nbsp;·&nbsp;
+  <a href="#-spustenie-lokálne">Spustiť lokálne</a>
+  &nbsp;·&nbsp;
+  <a href="SYNOLOGY.md">Nasadiť na Synology</a>
+</p>
 
-## Čo vie
+<p align="center">
+  <img alt="PWA" src="https://img.shields.io/badge/PWA-inštalovateľná-ffd60a?style=flat-square&labelColor=141414">
+  <img alt="Offline" src="https://img.shields.io/badge/offline-po_prvom_spustení-ffd60a?style=flat-square&labelColor=141414">
+  <img alt="AI" src="https://img.shields.io/badge/AI-CLIP_·_WebGPU-ffd60a?style=flat-square&labelColor=141414">
+  <img alt="Súkromie" src="https://img.shields.io/badge/fotky-neopúšťajú_počítač-ffd60a?style=flat-square&labelColor=141414">
+</p>
 
-- **Vstup:** výber priečinka cez File System Access API, rekurzívne hľadá `jpg`, `jpeg`, `png`, `webp`, `heic/heif`. Preskakuje skryté a systémové priečinky (napr. `@eaDir` zo Synology).
-- **HEIC z iPhonu** sa dekóduje cez libheif (WebAssembly) – načíta sa len keď je v priečinku HEIC.
-- **Výkon na desaťtisíce fotiek:** náhľady cez `createImageBitmap` so zmenšením, analýza v dávkach v poole Web Workerov, CLIP v samostatnom workeri, **pauza / pokračovanie**. Všetko (hash, EXIF, náhľad, embedding) sa ukladá do IndexedDB, takže ďalšie spustenie je rýchle a po zatvorení okna sa dá pokračovať.
-- **AI triedenie:** transformers.js + CLIP (`Xenova/clip-vit-base-patch32`), zero-shot. WebGPU s automatickým fallbackom na WASM. Kategórie a ich textové prompty sa dajú upraviť v Nastaveniach.
-  - Všeobecné: Selfie, Rodina a priatelia, Eventy a svadby, Jedlo, Cestovanie, Príroda a výhľady, Screenshoty, Memy a preposlané, Doklady a bločky, Veci a nákupy
-  - Eventy (JEF PRODUCTION): Stage a svetlá, Publikum, DJ pult, Technika, Backstage, Plagáty a flyery
-  - Pri nízkej istote ide fotka do „Ostatné“.
-- **Screenshoty:** CLIP + heuristiky (PNG, chýbajúci EXIF fotoaparátu, rozlíšenie displeja, „Screenshot“ / „Snímka obrazovky“ v názve).
-- **Duplikáty:** presné (SHA-256) aj takmer rovnaké (dHash + podobnosť CLIP embeddingov pri fotkách odfotených tesne po sebe). Ponechá sa najkvalitnejšia verzia (rozlíšenie → veľkosť → EXIF), ostatné sa označia a ukáže sa, koľko miesta sa ušetrí.
-- **Dátum:** EXIF `DateTimeOriginal` (exifr) → dátum v názve súboru (`IMG_20240501_…`, `Screenshot_2024…`) → dátum zmeny súboru. Fotky sa zoskupia do eventov podľa časových medzier (predvolene 6 h), priečinky sa volajú `RRRR-MM-DD`.
-- **Výstup:** najprv **náhľad bez zápisu** (dry run), potom zápis do **nového** výstupného priečinka v štruktúre `Kategória/…`, `Dátum/…` alebo `Kategória/Dátum/…`.
-  - Predvolene sa **kopíruje** – originály sa nikdy nemažú. Presúvanie je voliteľné, s potvrdením, a originál sa zmaže až po overení kópie.
-  - Existujúce súbory sa nikdy neprepíšu (pri zhode názvu pribudne `(1)`, `(2)`…).
-  - Do výstupného priečinka sa zapíše CSV report (pôvodná cesta → nová cesta, kategória, dátum, duplikát).
-- **Vyhľadávanie** (klávesa `/`): textový dopyt cez CLIP, napr. „svetlá na stage“ alebo „torta“. Slovenské slová sa preložia vstavaným slovníkom do angličtiny (CLIP rozumie najmä anglicky); anglické dopyty fungujú priamo.
-- Svetlý aj tmavý režim, inštalovateľná PWA, po prvom stiahnutí modelu funguje offline.
+---
 
-## Spustenie lokálne
+**Photo Sorter** vezme priečinok plný neporiadku (fotky z mobilu, screenshoty, memy z WhatsAppu, bločky, kópie kópií) a roztriedi ho do prehľadných priečinkov podľa obsahu a dátumu. Všetko beží **lokálne v prehliadači**. Žiadny server, žiadny upload, žiadne konto.
 
-Potrebuješ Node.js 20+.
+<p align="center">
+  <img src="docs/screenshot.png" alt="Photo Sorter – roztriedené fotky" width="860">
+</p>
+
+## ✨ Čo vie
+
+| | |
+| --- | --- |
+| 🧠 **AI triedenie** | CLIP (transformers.js) rozpozná, čo je na fotke: selfie, rodina, jedlo, cestovanie, príroda, doklady… Beží na **WebGPU**, inak automaticky na WASM. |
+| 🎛️ **Vlastné kategórie** | Kategórie aj ich textové prompty si upravíš v Nastaveniach. Pripravená je aj sada pre eventy: stage a svetlá, publikum, DJ pult, technika, backstage, plagáty. |
+| 📱 **Screenshoty** | AI + heuristiky: PNG, chýbajúci EXIF fotoaparátu, rozlíšenie displeja, „Screenshot“ v názve. |
+| 👯 **Duplikáty** | Presné kópie (SHA-256) aj takmer rovnaké fotky (perceptual hash + CLIP). Ponechá najkvalitnejšiu verziu a ukáže, koľko GB ušetríš. |
+| 📅 **Podľa dátumu** | EXIF → dátum v názve súboru → dátum zmeny. Fotky zoskupí do eventov podľa časových medzier (`RRRR-MM-DD`). |
+| 🍏 **HEIC z iPhonu** | Dekóduje sa cez libheif (WebAssembly), Chrome to sám nevie. |
+| 🔍 **Vyhľadávanie** | Stlač <kbd>/</kbd> a napíš „torta“, „pes“ alebo „svetlá na stage“. Nájde najpodobnejšie fotky. |
+| 🚀 **Desaťtisíce fotiek** | Web Workery, dávkové spracovanie, pauza a pokračovanie. Výsledky sa ukladajú do IndexedDB, takže ďalšie spustenie je rýchle. |
+| 🛡️ **Bezpečný výstup** | Najprv náhľad bez zápisu, potom zápis do **nového** priečinka. Predvolene kopíruje, originály nemaže a nič neprepíše. Pribudne aj CSV report. |
+| 🌗 **Svetlý aj tmavý režim** | Podľa systému alebo ručne. |
+
+## 🧭 Ako to funguje
+
+1. **Vybrať priečinok**: appka rekurzívne nájde `jpg`, `png`, `webp` a `heic`.
+2. **Roztriediť**: fotky odlietajú z gule do kariet priečinkov. Prvýkrát sa stiahne AI model (raz, potom je v cache).
+3. **Náhľad a zápis**: vyberieš štruktúru `Kategória/…`, `Dátum/…` alebo `Kategória/Dátum/…`, skontroluješ ju a zapíšeš do nového priečinka.
+
+```
+Roztriedené/
+├── Cestovanie/
+│   ├── 2024-08-10/
+│   └── 2024-08-12/
+├── Rodina a priatelia/
+│   └── 2024-05-01/
+├── Screenshoty/
+├── _Duplikáty/
+└── photo-sorter-report-2024-11-21.csv
+```
+
+## 🌐 Podporované prehliadače
+
+| Chrome / Edge (Windows, macOS) | Firefox | Safari |
+| :---: | :---: | :---: |
+| ✅ | ❌ | ❌ |
+
+Appka potrebuje File System Access API, ktoré majú len prehliadače na báze Chromium. Musí bežať cez **HTTPS** alebo `localhost`.
+
+## 💻 Spustenie lokálne
+
+Potrebuješ [Node.js](https://nodejs.org) 20+.
 
 ```bash
+git clone https://github.com/davidbabjarcik/photo-sorter.git
+cd photo-sorter
 npm install
 npm run dev
 ```
 
-Otvor `http://localhost:5173` v Chrome alebo Edge.
+Otvor **http://localhost:5173** v Chrome alebo Edge.
 
-Prvé triedenie stiahne AI model (podľa zariadenia cca 150–300 MB, iba raz – potom je v cache prehliadača).
+| Príkaz | Čo robí |
+| --- | --- |
+| `npm run dev` | vývojový server |
+| `npm run build` | produkčný build do `dist/` |
+| `npm run preview` | spustí produkčný build na `localhost:4173` |
+| `npm run synology:zip` | ZIP na nahratie na Synology ([návod](SYNOLOGY.md)) |
+| `npm run synology:copy -- <cieľ>` | build a kopírovanie priamo na NAS |
 
-## Build a nasadenie
+## 🚀 Nasadenie
 
-```bash
-npm run build
-```
+- **GitHub Pages**: po každom pushi do `main` sa appka automaticky nasadí na **https://davidbabjarcik.github.io/photo-sorter/**.
+- **Synology NAS**: pozri [SYNOLOGY.md](SYNOLOGY.md).
+- **Akýkoľvek statický hosting**: nahraj obsah `dist/`. Cesty sú relatívne, takže funguje aj v podpriečinku.
 
-Výsledok je v priečinku `dist/` – čisto statické súbory s relatívnymi cestami, takže fungujú v ľubovoľnom podpriečinku.
+## 🔒 Súkromie
 
-> **Dôležité:** File System Access API funguje len v zabezpečenom kontexte – **HTTPS** alebo `localhost`.
+- Fotky, náhľady a AI embeddingy zostávajú **v tvojom prehliadači** (IndexedDB). Vymažeš ich v Nastaveniach.
+- Z internetu sa sťahuje iba AI model z Hugging Face, a to raz.
+- Žiadna analytika, žiadne cookies, žiadny backend.
 
-### GitHub Pages
+## 🧩 Technológie
 
-V repozitári je workflow `.github/workflows/deploy.yml` (spúšťa sa ručne cez *Actions → Deploy to GitHub Pages → Run workflow*).
-V *Settings → Pages* nastav **Source: GitHub Actions**. GitHub Pages pre súkromné repozitáre vyžaduje platený plán (Pro/Team); inak použi Synology.
+[Vite](https://vite.dev) · [transformers.js](https://github.com/huggingface/transformers.js) + [CLIP](https://huggingface.co/Xenova/clip-vit-base-patch32) · [ONNX Runtime Web](https://onnxruntime.ai) · [exifr](https://github.com/MikeKovarik/exifr) · [libheif-js](https://github.com/catdad-experiments/libheif-js) · [idb](https://github.com/jakearchibald/idb) · [vite-plugin-pwa](https://vite-pwa-org.netlify.app)
 
-### Synology (Web Station)
-
-Podrobný návod je v **[SYNOLOGY.md](SYNOLOGY.md)**. V skratke:
-
-```bash
-npm run synology:zip                                    # ZIP na nahratie cez File Station
-npm run synology:copy -- "\\192.168.1.10\web\photo-sorter"  # alebo priamo na sieťový priečinok
-```
-
-Potom otvor `https://<tvoj-nas>/photo-sorter/` (potrebný platný HTTPS certifikát, napr. Let's Encrypt cez Synology DDNS).
-
-### Inštalácia ako appka
-
-V Chrome / Edge klikni na ikonu inštalácie v paneli s adresou (alebo menu → *Inštalovať Photo Sorter*).
-
-## Testovací priečinok (vývoj)
-
-Vo vývojovom režime je skrytý testovací režim: otvor `http://localhost:5173/?demo`, klikni *Načítať testovací priečinok* – súbory z `dev-fixtures/` (zoznam v `dev-fixtures/manifest.json`) sa skopírujú do súkromného úložiska prehliadača (OPFS) a výstup sa zapíše tiež tam. Priečinok `dev-fixtures/` nie je v gite – vlož doň vlastné testovacie fotky a `manifest.json` so zoznamom relatívnych ciest.
-
-## Štruktúra
+<details>
+<summary><b>Štruktúra projektu</b></summary>
 
 | Súbor | Účel |
 | --- | --- |
@@ -81,7 +117,13 @@ Vo vývojovom režime je skrytý testovací režim: otvor `http://localhost:5173
 | `src/output.js` | eventy, plán (dry run), zápis, CSV report |
 | `src/settings.js` | predvolené kategórie a prompty |
 | `src/ball.js` | animovaná guľa z náhľadov |
+| `scripts/synology.mjs` | ZIP a kopírovanie na Synology |
 
-## Súkromie
+</details>
 
-Žiadny server, žiadna analytika. Z internetu sa sťahuje iba AI model z Hugging Face (raz, potom z cache). Fotky, náhľady a embeddingy zostávajú v tvojom prehliadači (IndexedDB) – dajú sa vymazať v Nastaveniach.
+<details>
+<summary><b>Testovací priečinok (vývoj)</b></summary>
+
+Vo vývojovom režime otvor `http://localhost:5173/?demo` a klikni *Načítať testovací priečinok*. Súbory z `dev-fixtures/` (zoznam v `dev-fixtures/manifest.json`) sa skopírujú do súkromného úložiska prehliadača (OPFS) a výstup sa zapíše tiež tam. Priečinok `dev-fixtures/` nie je v gite, vlož doň vlastné testovacie fotky.
+
+</details>

@@ -311,6 +311,9 @@ function finishSort() {
   for (const c of S.cards.values()) c.dirty = true;
   render();
   setButtons();
+  // pri malom počte fotiek guľu doplň opakovanými náhľadmi, nech nie je poloprázdna
+  const withThumb = S.records.filter((r) => r.thumb);
+  if (withThumb.length && withThumb.length < 150) for (let i = 0; i < 150; i++) addToBall(withThumb[i % withThumb.length]);
 }
 
 $('#btn-pick').onclick = pickSource;

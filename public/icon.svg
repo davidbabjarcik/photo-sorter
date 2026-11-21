@@ -1,8 +1,52 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#141414"/>
-  <rect x="96" y="150" width="200" height="150" rx="22" fill="#ffd60a" transform="rotate(-12 196 225)"/>
-  <rect x="190" y="200" width="220" height="165" rx="24" fill="#fafafa"/>
-  <circle cx="250" cy="250" r="22" fill="#141414"/>
-  <path d="M206 345l62-70 44 48 30-30 52 52z" fill="#141414"/>
-  <path d="M120 400h272" stroke="#ffd60a" stroke-width="22" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#232323"/>
+      <stop offset="1" stop-color="#0e0e0e"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe14d"/>
+      <stop offset="1" stop-color="#ffc800"/>
+    </linearGradient>
+    <linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7cc7ff"/>
+      <stop offset="1" stop-color="#cfeaff"/>
+    </linearGradient>
+    <linearGradient id="sky2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff9a76"/>
+      <stop offset="1" stop-color="#ffd3a8"/>
+    </linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+
+  <!-- zadná časť priečinka -->
+  <path d="M96 176c0-13 10-24 24-24h86c8 0 15 4 20 10l14 18h152c13 0 24 11 24 24v170H96z" fill="#c99a00"/>
+
+  <!-- fotka 1 (vzadu, naklonená doľava) -->
+  <g filter="url(#sh)" transform="rotate(-14 210 220)">
+    <rect x="136" y="128" width="150" height="176" rx="14" fill="#fafafa"/>
+    <rect x="148" y="140" width="126" height="120" rx="8" fill="url(#sky1)"/>
+    <path d="M148 240l38-44 30 30 22-22 36 36v20H148z" fill="#2f7d4f"/>
+    <circle cx="246" cy="168" r="12" fill="#fff6b0"/>
+  </g>
+
+  <!-- fotka 2 (vpredu, naklonená doprava) -->
+  <g filter="url(#sh)" transform="rotate(10 300 220)">
+    <rect x="228" y="112" width="150" height="176" rx="14" fill="#fafafa"/>
+    <rect x="240" y="124" width="126" height="120" rx="8" fill="url(#sky2)"/>
+    <circle cx="303" cy="200" r="26" fill="#ff6a3d"/>
+    <path d="M240 222c30-12 60-12 126 0v22H240z" fill="#3b2a5a"/>
+  </g>
+
+  <!-- predná časť priečinka -->
+  <path d="M84 250c0-12 10-22 22-22h300c12 0 22 10 22 22l-14 128c-1 13-12 22-24 22H122c-12 0-23-9-24-22z" fill="url(#front)" filter="url(#sh)"/>
+  <rect x="200" y="296" width="112" height="16" rx="8" fill="#141414" opacity="0.18"/>
+
+  <!-- AI iskra -->
+  <path d="M404 92c4 22 14 32 36 36-22 4-32 14-36 36-4-22-14-32-36-36 22-4 32-14 36-36z" fill="#ffd60a"/>
+  <path d="M444 168c2 10 6 14 16 16-10 2-14 6-16 16-2-10-6-14-16-16 10-2 14-6 16-16z" fill="#fafafa" opacity="0.9"/>
 </svg>
